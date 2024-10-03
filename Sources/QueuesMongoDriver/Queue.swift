@@ -25,18 +25,12 @@ struct MongoQueue: AsyncQueue {
     }
     
     func clear(_ id: JobIdentifier) async throws {
-        guard let _ = try await collection.findOneAndUpdate(
-            filter: .document(
+        guard let _ = try await collection.findOneAndDelete(
+            .document(
                 ("jobid", .string(id.string)),
                 ("queue", .string(context.queueName.string)),
                 ("status", .string(MongoJobStatus.processing.rawValue))
-            ),
-            update: .document(
-                ("$set", .document(
-                    ("status", .string(MongoJobStatus.completed.rawValue))
-                ))
-            ),
-            options: .init(returnDocument: .after)
+            )
         ) else {
             throw MongoQueueError.missingJob
         }
