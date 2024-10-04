@@ -44,7 +44,8 @@ struct MongoQueue: AsyncQueue {
             ),
             update: .document(
                 ("$set", .document(
-                    ("status", .string(MongoJobStatus.processing.rawValue))
+                    ("status", .string(MongoJobStatus.processing.rawValue)),
+                    ("started", .datetime(.now))
                 ))
             ),
             options: .init(
@@ -70,6 +71,9 @@ struct MongoQueue: AsyncQueue {
                 ("$set", .document(
                     ("status", .string(MongoJobStatus.ready.rawValue)),
                     ("created", .datetime(.now))
+                )),
+                ("$unset", .document(
+                    ("started", .bool(false))
                 ))
             ),
             options: .init(returnDocument: .after)

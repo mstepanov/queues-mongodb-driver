@@ -16,6 +16,19 @@ struct MongoQueuesDriver {
                 ),
             options: .init(name: "jobid_queue_index")
         ))
+        // Stale jobs recovery
+        try await col.updateMany(
+            filter: .document(
+                ("status", .string(MongoJobStatus.processing.rawValue)),
+                ("started", .document(
+                    ("$lt", .datetime(.now.addingTimeInterval(-300))) // 5 min
+                ))
+            ),
+            update: .document(
+                ("$set", .document(
+                    ("status", .string(MongoJobStatus.ready.rawValue))
+                ))
+            ))
     }
 }
 
